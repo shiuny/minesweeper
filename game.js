@@ -12,7 +12,7 @@ const gameState = {
     rafId: null, eventListeners: [], buttonListeners: [],
     isDragging: false, touchStartPos: { x: 0, y: 0 }, initialScroll: { left: 0, top: 0 },
     timer: 0, timerId: null,
-    animationTimeoutIds: [] // ★★★ FIX: アニメーションタイマーIDを保持する配列
+    animationTimeoutIds: []
 };
 
 const touchThreshold = 400;
@@ -65,7 +65,6 @@ function startGame(difficulty) {
 function initGameGrid() {
     console.log('Initializing game grid');
 
-    // ★★★ FIX: 古いゲームのアニメーション予約をすべてキャンセルする
     gameState.animationTimeoutIds.forEach(clearTimeout);
     gameState.animationTimeoutIds = [];
     
@@ -108,7 +107,8 @@ function bindEventListeners() {
             touchend: (e) => handleTouchEnd(e)
         };
         Object.entries(handlers).forEach(([event, handler]) => {
-            container.addEventListener(event, { passive: event !== 'touchmove' });
+            // ★★★ FIX: addEventListenerの引数を正しく設定
+            container.addEventListener(event, handler, { passive: event !== 'touchmove' });
             gameState.eventListeners.push({ element: container, event, handler });
         });
     }
@@ -141,7 +141,7 @@ function bindButtonEvents() {
     });
 }
 
-// --- Game Logic (No changes in this block) ---
+// --- Game Logic ---
 
 function placeMines(safeRow, safeCol) {
     let minesPlaced = 0;
@@ -213,7 +213,7 @@ function openSafeZone(row, col) {
     renderGrid(cellsToUpdate);
 }
 
-// --- Player Actions (No changes in this block) ---
+// --- Player Actions ---
 
 function handleCellClick(row, col) {
     if (gameState.gameOver || gameState.flagMode || gameState.flaggedCells[row][col] || gameState.revealedCells[row][col]) {
@@ -630,7 +630,6 @@ function revealAllMines(clickedRow, clickedCol) {
     }
     
     mineCells.forEach((mine, index) => {
-        // ★★★ FIX: `setTimeout`のIDを保存する
         const timeoutId = setTimeout(() => {
             const cell = document.querySelector(`.cell[data-row="${mine.i}"][data-col="${mine.j}"]`);
             if (cell) cell.classList.add('mine', 'mine-reveal-animation');
@@ -673,7 +672,6 @@ function showResultModal(isWin) {
     const timeoutId = setTimeout(() => {
         modal.style.display = 'flex';
     }, 1500);
-    // ★★★ FIX: モーダル表示のsetTimeoutもキャンセル対象にする
     gameState.animationTimeoutIds.push(timeoutId);
 }
 
@@ -694,7 +692,6 @@ function toggleFlagMode() {
 function showHelp() {
     const modal = document.querySelector('#help-modal');
     const content = document.querySelector('#help-modal-content');
-    // ★★★ FIX: モーダル表示時に必ずヘルプコンテンツを再設定する
     if (modal && content) {
         content.innerHTML = helpContent;
         modal.style.display = 'flex';
