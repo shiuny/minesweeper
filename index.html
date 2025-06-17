@@ -81,6 +81,9 @@
             border-right-color: #808080;
             border-bottom-color: #808080;
             display: inline-block;
+            /* ★★★ FIX: ウィンドウが画面幅を超えないようにし、スクロールの問題を解決 */
+            max-width: 100%;
+            box-sizing: border-box;
         }
         #game-header {
             display: flex;

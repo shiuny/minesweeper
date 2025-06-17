@@ -107,7 +107,8 @@ function bindEventListeners() {
             touchend: (e) => handleTouchEnd(e)
         };
         Object.entries(handlers).forEach(([event, handler]) => {
-            container.addEventListener(event, handler, { passive: event !== 'touchmove' });
+            // ★★★ FIX: preventDefaultを有効にするため、すべてのタッチイベントを non-passive にする
+            container.addEventListener(event, handler, { passive: false });
             gameState.eventListeners.push({ element: container, event, handler });
         });
     }
@@ -348,6 +349,7 @@ function handleTouchStart(e) {
 
 function handleTouchMove(e) {
     if (gameState.gameOver || e.touches.length !== 1) return;
+    e.preventDefault();
     const touch = e.touches[0];
     const dx = touch.clientX - gameState.touchStartPos.x;
     const dy = touch.clientY - gameState.touchStartPos.y;
@@ -377,6 +379,9 @@ function handleTouchEnd(e) {
     if (gameState.rafId) cancelAnimationFrame(gameState.rafId);
     
     if (!gameState.isDragging) {
+        // ★★★ FIX: 後続の`click`イベントが発火するのを防ぐ
+        e.preventDefault();
+
         const target = document.elementFromPoint(gameState.touchStartPos.x, gameState.touchStartPos.y);
         if (!target || !target.classList.contains('cell')) return;
         
@@ -397,7 +402,6 @@ function handleTouchEnd(e) {
                 renderGrid([{ row, col }]);
             }
         } else {
-            // ★★★ FIX: タップで開かないように修正
             // フラグモードOFF: タップで選択、ダブルタップでChording
             const currentTime = Date.now();
 
