@@ -81,7 +81,6 @@
             border-right-color: #808080;
             border-bottom-color: #808080;
             display: inline-block;
-            /* ★★★ FIX: ウィンドウが画面幅を超えないようにし、スクロールの問題を解決 */
             max-width: 100%;
             box-sizing: border-box;
         }
@@ -250,6 +249,17 @@
         @keyframes sparkle { 0%, 100% { box-shadow: 0 0 5px 2px gold, inset 0 0 5px 1px gold; } 50% { box-shadow: 0 0 15px 5px gold, inset 0 0 10px 3px gold; } }
         #grid.sparkle-animation { animation: sparkle 1.5s infinite; }
         
+        /* ★★★ FIX: スマホ表示でコントロールボタンが改行されないようにスタイルを微調整 */
+        @media (max-width: 430px) {
+            #difficulty-controls {
+                gap: 4px; /* ボタン間の隙間を詰める */
+            }
+            #difficulty-controls button {
+                padding: 4px 6px; /* ボタンの余白を詰める */
+                font-size: 0.85em; /* フォントを少し小さくする */
+            }
+        }
+
         @media (max-width: 360px) {
             :root { --cell-size: 18px; }
             .cell.selected::after { border-width: 1.5px; }
