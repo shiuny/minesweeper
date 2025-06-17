@@ -107,7 +107,6 @@ function bindEventListeners() {
             touchend: (e) => handleTouchEnd(e)
         };
         Object.entries(handlers).forEach(([event, handler]) => {
-            // ★★★ FIX: addEventListenerの引数を正しく設定
             container.addEventListener(event, handler, { passive: event !== 'touchmove' });
             gameState.eventListeners.push({ element: container, event, handler });
         });
@@ -386,6 +385,7 @@ function handleTouchEnd(e) {
         if (isNaN(row) || isNaN(col)) return;
 
         if (gameState.flagMode) {
+            // フラグモード: タップでフラグ設置/解除
             if (!gameState.revealedCells[row][col]) {
                 if (!gameState.flaggedCells[row][col]) {
                     if (gameState.flagsPlaced >= gameState.mines) return;
@@ -397,21 +397,30 @@ function handleTouchEnd(e) {
                 renderGrid([{ row, col }]);
             }
         } else {
-            const prevSelected = gameState.selectedCell ? { ...gameState.selectedCell } : null;
+            // ★★★ FIX: タップで開かないように修正
+            // フラグモードOFF: タップで選択、ダブルタップでChording
             const currentTime = Date.now();
-            if (gameState.selectedCell?.row === row && gameState.selectedCell?.col === col) {
-                if (currentTime - gameState.lastClickTime < touchThreshold) {
-                    handleChording(row, col);
-                } else {
-                    openSelectedCell();
-                }
+
+            // ダブルタップ判定
+            if (gameState.lastClickCell?.row === row && gameState.lastClickCell?.col === col && currentTime - gameState.lastClickTime < touchThreshold) {
+                gameState.selectedCell = { row, col };
+                handleChording(row, col);
+                // ダブルタップ後はリセット
+                gameState.lastClickTime = 0;
+                gameState.lastClickCell = null;
             } else {
+                // シングルタップ -> セルを選択するだけ
+                const prevSelected = gameState.selectedCell ? { ...gameState.selectedCell } : null;
                 gameState.selectedCell = { row, col };
                 const cellsToUpdate = [{ row, col }];
-                if (prevSelected) cellsToUpdate.push(prevSelected);
+                if (prevSelected && (prevSelected.row !== row || prevSelected.col !== col)) {
+                    cellsToUpdate.push(prevSelected);
+                }
                 renderGrid(cellsToUpdate);
+                // ダブルタップ判定用に今回の情報を保存
+                gameState.lastClickTime = currentTime;
+                gameState.lastClickCell = { row, col };
             }
-            gameState.lastClickTime = currentTime;
         }
     }
     gameState.isDragging = false;
